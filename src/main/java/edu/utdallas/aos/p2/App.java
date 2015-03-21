@@ -44,7 +44,6 @@ public class App {
 			logger.debug("Configuration Read Successfully");
 		}
 		
-		
 		Server server = Server.getInstance();
 		server.start();
 	}
