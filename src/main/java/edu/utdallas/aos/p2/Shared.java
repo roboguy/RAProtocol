@@ -7,5 +7,6 @@ public class Shared {
 	public static volatile Node myInfo;
 	public static volatile boolean isInCS;
 	public static volatile boolean hasRequestedCS;
+	public static volatile boolean isRequestedCS;
 
 }
