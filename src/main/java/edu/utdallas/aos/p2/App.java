@@ -40,6 +40,7 @@ public class App {
 		Logger logger = LogManager.getLogger(App.class);
 		logger.debug("Reading Configs");
 		Config conf = readConfig();
+		
 		if(conf !=null){
 			logger.debug("Configuration Read Successfully");
 		}
@@ -49,6 +50,7 @@ public class App {
 	}
 
 	private static Config readConfig() {
+		
 		//Logger logger = LogManager.getLogger(App.class);
 		Gson gson = new Gson();
 		StringBuilder sb = new StringBuilder();
