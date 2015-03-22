@@ -1,0 +1,69 @@
+{
+  "N": 2,
+  "nodes": [
+    {
+        "id": 0,
+        "host": "dc01",
+        "port": "5000"
+    },
+    {
+        "id": 1,
+        "host": "dc02",
+        "port": "5000"
+    },
+    {
+        "id": 2,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 3,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 4,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 5,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 6,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 7,
+        "host": "dc03",
+        "port": "5000"
+    },
+        {
+        "id": 8,
+        "host": "dc03",
+        "port": "5000"
+    },    
+    {
+        "id": 9,
+        "host": "dc03",
+        "port": "5000"
+    },
+    {
+        "id": 10,
+        "host": "dc03",
+        "port": "5000"
+    }
+  ],
+  "params": {
+    "key_distribution": "arbitiary/fixed",
+    "necessary_arg1": "",
+    "necessary_arg2": "",
+    "optional_arg1": ""
+  },
+  "total_Number_Of_Requests": 1000,
+  "mean_Consecutive_Request_Delay": 50,
+  "mean_Duration_Of_CS": 10
+}
