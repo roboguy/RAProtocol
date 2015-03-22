@@ -29,12 +29,14 @@ public class RequestHandler extends Thread {
 			{
 				//Set the value in Queue.
 				//1.a If Yes -> Buffer the request in queue (Object of Request Class)
+				Shared.bufferingQueue.add(request);
 			}
 			//2. Else -> Check the Timestamp -> request.getTimeStamp()
 			else
 			{
 				if(Shared.isRequestedCS)
 				{
+					//if(request.getTimeStamp())
 					
 					//check my requested timestamp with the request.getTImestamp()
 					//If(request.getTimestamp > Shared.myRequestTS)

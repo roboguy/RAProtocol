@@ -11,7 +11,7 @@ public class Request {
 	@Expose
 	private String key;
 	@Expose
-	private String timeStamp;
+	private Integer timeStamp;
 	@Expose
 	private Integer nodeId;
 
@@ -53,7 +53,7 @@ public class Request {
 	 * 
 	 * @return The timeStamp
 	 */
-	public String getTimeStamp() {
+	public Integer getTimeStamp() {
 		return timeStamp;
 	}
 
@@ -62,7 +62,7 @@ public class Request {
 	 * @param timeStamp
 	 *            The timeStamp
 	 */
-	public void setTimeStamp(String timeStamp) {
+	public void setTimeStamp(Integer timeStamp) {
 		this.timeStamp = timeStamp;
 	}
 
