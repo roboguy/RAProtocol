@@ -14,6 +14,7 @@ public class RequestHandler extends Thread {
 		// TODO Auto-generated method stub
 		
 	}
+	
 
 	public void Message()
 	{
@@ -22,6 +23,7 @@ public class RequestHandler extends Thread {
 		Request request=new Request();
 		if(request.getType().equals("REQUEST"))
 		{
+			// Latch to BLOCK CS ENTER
 			//check whether the node is in Critical Section
 			if(Shared.isInCS)
 			{
@@ -37,21 +39,27 @@ public class RequestHandler extends Thread {
 					//check my requested timestamp with the request.getTImestamp()
 					//If(request.getTimestamp > Shared.myRequestTS)
 						//Add it to the buffer queue
+						// Latch release and free to enter CS
 					//else
 						// Give up the key and update have and have not sets.
 				}
 				else
 				{
 					//I have not requested for CS.
-					//give key to requesting Process & update Have & have not hashmaps
+					//give key to requesting Process & update Have & have not hashmaps for my Process.
+					
 				}
 			}
-			//
+			
+			//Update my latest timestamp.
 				
 		}
+
 		else if(request.getType().equals("RESPONSE"))
 		{
-			
+			//Update have & have not set
+			// Check Have not set is empty
+					//If it is empty then release Latch
 		}
 	}
 }
