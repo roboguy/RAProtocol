@@ -9,6 +9,10 @@ import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/*
+ * This class implements a singleton TCP server.
+ */
+
 public class Server extends Thread {
 
 	private static Server server = null;
@@ -20,11 +24,13 @@ public class Server extends Thread {
 	public void setPort(Integer por) {
 		port = por;
 	}
-
+	
+	//Private constructor
 	private Server() {
 
 	}
 
+	//Get singleton instance if it exists, otherwise create it and return instance.
 	public static Server getInstance() {
 		logger = LogManager.getLogger(Server.class);
 		
@@ -80,6 +86,19 @@ public class Server extends Thread {
 				logger.info("Server Shut Down");
 			}
 
+		}
+		finally{
+			try {
+				serverSock.close();
+			} catch (IOException e) {
+				if(isRunning == true){
+					e.printStackTrace();
+					logger.error(e.getMessage());
+				}
+				else {
+					logger.info("Server Shut Down");
+				}
+			}
 		}
 	}
 
