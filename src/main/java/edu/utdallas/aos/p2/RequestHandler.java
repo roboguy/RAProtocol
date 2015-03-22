@@ -42,6 +42,7 @@ public class RequestHandler extends Thread {
 						// Latch release and free to enter CS
 					//else
 						// Give up the key and update have and have not sets.
+						//RUCHIR - Again send the request with old timestamp to enter CS
 				}
 				else
 				{
