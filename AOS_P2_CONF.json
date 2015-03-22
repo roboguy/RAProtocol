@@ -2,18 +2,14 @@
   "N": 2,
   "nodes": [
     {
-      "node": {
         "id": 0,
         "host": "dc01",
         "port": "5000"
-      }
     },
     {
-      "node": {
         "id": 1,
         "host": "dc02",
         "port": "5000"
-      }
     }
   ],
   "params": {

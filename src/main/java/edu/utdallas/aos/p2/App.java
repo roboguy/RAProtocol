@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.Gson;
 
 import edu.utdallas.aos.p2.config.Config;
+import edu.utdallas.aos.p2.config.Node;
 
 
 /*
@@ -44,8 +45,13 @@ public class App {
 		if(conf !=null){
 			logger.debug("Configuration Read Successfully");
 		}
+		Node myInfo = conf.getNodes().get(nodeID);
 		
+		String myHost = myInfo.getHost();
+		String port = myInfo.getPort();
+		Integer portNum = Integer.parseInt(port);
 		Server server = Server.getInstance();
+		server.setPort(portNum);
 		server.start();
 	}
 
@@ -67,8 +73,8 @@ public class App {
 				scanner.close();
 			}
 		}
-		
-		Config conf = gson.fromJson(sb.toString(), Config.class);
+		String confJson = sb.toString();
+		Config conf = gson.fromJson(confJson, Config.class);
 		return conf;
 	}
 

@@ -2,7 +2,6 @@ package edu.utdallas.aos.p2.config;
 
 import com.google.gson.annotations.Expose;
 
-
 public class Node {
 
 	@Expose
