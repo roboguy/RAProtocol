@@ -52,6 +52,9 @@ public class App {
 		Integer portNum = Integer.parseInt(port);
 		Server server = Server.getInstance();
 		server.setPort(portNum);
+		
+		
+		
 		server.start();
 	}
 
