@@ -20,7 +20,6 @@ public class Service {
 	{
 		//UPDATE MY REQUEST.TIMESTAMP
 		Shared.logicalClockTimeStamp++;
-		Shared.requestTimeStamp=Shared.logicalClockTimeStamp;
 		Shared.isRequestedCS= true;
 		
 		// Check for Have and Have not keys
@@ -42,6 +41,7 @@ public class Service {
 				//Else if (Has not is not null)
 				//get corresponding keys from various Servers 
 				// wait till response (while its not null)
+				Shared.requestTimeStamp=Shared.logicalClockTimeStamp;
 				Iterator<String> iSet=Shared.haveNotKeys.iterator();
 				while(iSet.hasNext())
 				{
@@ -66,13 +66,15 @@ public class Service {
 						Request rNode=new Request();
 						rNode.setKey(key);
 						rNode.setNodeId(Shared.myInfo.getId());
-						rNode.setTimeStamp(Shared.logicalClockTimeStamp); //Check if it is correct
+						rNode.setTimeStamp(Shared.requestTimeStamp); //Check if it is correct
 						rNode.setType("REQUEST");
 						Gson gson=new Gson();
 						String message=gson.toJson(rNode);
 						sendKeyRequest(message,sendNode);
 					}
 				}
+				Shared.logicalClockTimeStamp++;
+				
 				//WHILE all request is sent
 			
 			}
