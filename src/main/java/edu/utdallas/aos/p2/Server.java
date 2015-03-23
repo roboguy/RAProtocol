@@ -71,6 +71,7 @@ public class Server extends Thread {
 					sb.append(line);
 					line = inFromClient.readLine();
 				}
+				logger.debug("Started Request Handler to handle request.");
 				RequestHandler handler = new RequestHandler(sb.toString());
 				handler.start();
 			}

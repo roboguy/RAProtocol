@@ -24,5 +24,15 @@
 			<AppenderRef ref="MyFile" />
 			<AppenderRef ref="Console" />
 		</Logger>
+		<Logger name="edu.utdallas.aos.p2.Application" level="TRACE"
+			additivity="false">
+			<AppenderRef ref="MyFile" />
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="edu.utdallas.aos.p2.RequestHandler" level="TRACE"
+			additivity="false">
+			<AppenderRef ref="MyFile" />
+			<AppenderRef ref="Console" />
+		</Logger>
 	</Loggers>
 </Configuration>

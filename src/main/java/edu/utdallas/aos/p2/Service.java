@@ -1,7 +1,6 @@
 package edu.utdallas.aos.p2;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,16 +8,20 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.Gson;
 
 import edu.utdallas.aos.p2.config.Node;
 
 public class Service {
-
+	private Logger logger = LogManager.getLogger(Service.class);
 	//IMportant :- Take care for Concurrency with respect to HashMaps for Have and Havenot ,Maps
 	public void csEnter()
 	{
 		//UPDATE MY REQUEST.TIMESTAMP
+		logger.debug("Updating Timestamp..");
 		Shared.logicalClockTimeStamp++;
 		Shared.isRequestedCS= true;
 		
@@ -32,10 +35,12 @@ public class Service {
 			if(Shared.haveNotKeys.isEmpty())
 			{
 				Shared.isInCS=true;
+				logger.debug("Entering Critical Section");
 				criticalSection();
 				return;
 				//csLeave();
 			}
+			//TODO: Add more logging statements here
 			else
 			{
 				//Else if (Has not is not null)
@@ -58,6 +63,7 @@ public class Service {
 						sendNodeId=split[1];
 						
 					}
+					logger.debug("Sending key request to node: " + sendNodeId);
 					//Calling the information from Shared List of all Node Info
 					Node sendNode=getNodeInfo(sendNodeId);
 					
@@ -69,17 +75,20 @@ public class Service {
 						rNode.setTimeStamp(Shared.requestTimeStamp); //Check if it is correct
 						rNode.setType("REQUEST");
 						Gson gson=new Gson();
-						String message=gson.toJson(rNode);
+						//TODO: check if deserialization is correctly done or not.
+						String message=gson.toJson(rNode); 
 						sendKeyRequest(message,sendNode);
 					}
-				}
+				}//WHILE all request is sent
+				
+				//TODO: Check if we need to update TS here ?
 				Shared.logicalClockTimeStamp++;
 				
-				//WHILE all request is sent
+				
 			
-			}
-		}
-		
+			} //Else block ends
+		} // Synchronized block ends
+		logger.debug("Blocked on pending key requests ....");
 		while(true)
 		{
 			if(Shared.haveNotKeys.isEmpty())
@@ -93,17 +102,17 @@ public class Service {
 		}
 		
 		//csLeave();
-		
-		
-		
 	}
 	private Node getNodeInfo(String sendNodeId) {
+		//TODO: Use Shared.nodeInfo<Integer(nodeID), String(host:port)> split on ":".
 		Node n =new Node();
 		n.setId(1);
 		n.setHost("localhost");
 		n.setPort("5001");
 		return n;
 	}
+	
+	//TODO: Add logging statements here.
 	public void sendKeyRequest(String message, Node sendNode)
 	{
 		String hostName=sendNode.getHost();
@@ -129,6 +138,7 @@ public class Service {
 		//Process the entire buffered Queue and satisfy the requests by sending keys.
 		Shared.isInCS=false;
 		Shared.isRequestedCS=false;
+		logger.debug("Processing Queue in CS Leave");
 		synchronized (Shared.objForLock) {
 			while(!Shared.bufferingQueue.isEmpty())
 			{
@@ -144,10 +154,9 @@ public class Service {
 	 */
 	private void fulfillReq(Request request) {
 	
-		RequestHandler reqhandler=new RequestHandler();
+		RequestHandler reqhandler= new RequestHandler();
+		logger.debug("Fulfilling Requests");
 		reqhandler.giveUpKey(request);
-		
-		
 	}
 	public void criticalSection()
 	{
@@ -156,19 +165,19 @@ public class Service {
 		try {
 			Scanner scanner=new Scanner(csfile);
 			int value=scanner.nextInt();
+			logger.debug("Read value: " +value);
 			value++;
 			scanner.close();
 			FileWriter f2 = new FileWriter("csFile.txt");
             f2.write(value);
+            logger.debug("Successfully wrote value: " + value);
             f2.close();
 		}  catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
 			Thread.sleep(5);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
