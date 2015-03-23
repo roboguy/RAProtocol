@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.Gson;
 
 import edu.utdallas.aos.p2.config.Config;
-import edu.utdallas.aos.p2.config.Node;
 
 
 /*
@@ -25,7 +24,7 @@ public class App {
 		//System.out.println("Hello World");
 		
 		if (args.length != 1) {
-			System.err.println("Usage: Project1 <node_ID>");
+			System.err.println("Usage: Project2 <node_ID>");
 			//logger.error("Invalid Input Paramters or not enoguh input paramters.");
 			System.exit(2);
 		}
@@ -45,17 +44,36 @@ public class App {
 		if(conf !=null){
 			logger.debug("Configuration Read Successfully");
 		}
-		Node myInfo = conf.getNodes().get(nodeID);
-		
-		String myHost = myInfo.getHost();
-		String port = myInfo.getPort();
+
+		Shared.myInfo = conf.getNodes().get(nodeID);
+		//String myHost = Shared.myInfo.getHost();
+		String port = Shared.myInfo.getPort();
 		Integer portNum = Integer.parseInt(port);
 		Server server = Server.getInstance();
 		server.setPort(portNum);
 		
-		
-		
+		/*
+		 * Initialize keys hashSet
+		 */
+		try {
+			initKeys(nodeID, conf);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		server.start();
+		
+		//Waiting 3 seconds for server to initialize.
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		logger.debug("Starting Application for making CS Requests.");
+		Application appln = Application.getInstance();
+		Application.setNumberOfRequests(conf.getTotalNumberOfRequests());
+		appln.start();
 	}
 
 	private static Config readConfig() {
@@ -79,6 +97,35 @@ public class App {
 		String confJson = sb.toString();
 		Config conf = gson.fromJson(confJson, Config.class);
 		return conf;
+	}
+	
+	private static void initKeys(Integer nodeID, Config conf) throws FileNotFoundException{
+		Scanner scanner = new Scanner(new File("KEYS"));
+		for(int rowCount = 0; rowCount < nodeID; rowCount++){
+			String line = scanner.nextLine();
+		}
+		String allocatedKeys = scanner.nextLine().trim();
+		scanner.close();
+		String[] keys = allocatedKeys.split("\\s+");
+		for(int count = 0; count < keys.length; count++){
+			if(count == nodeID){
+				continue;
+			}else{
+				String key = keys[count];
+				if(key.equals("1")){
+					Integer smaller = Math.min(count, nodeID);
+					Integer bigger 	= Math.max(count, nodeID);
+					String ownedKey = smaller + "," + bigger;
+					Shared.haveKeys.add(ownedKey);
+				}else if(key.equals("0")){
+					Integer smaller = Math.min(count, nodeID);
+					Integer bigger 	= Math.max(count, nodeID);
+					String notHasKey = smaller + "," + bigger;
+					Shared.haveNotKeys.add(notHasKey);
+				}
+			}
+		}//For each key loop ends
+		
 	}
 
 }
