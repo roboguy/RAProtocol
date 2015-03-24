@@ -1,8 +1,10 @@
 package edu.utdallas.aos.p2;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import edu.utdallas.aos.p2.config.Node;
 
@@ -12,8 +14,8 @@ public class Shared {
 
 	public static volatile boolean isRequestedCS = false; // if I have requested
 															// for CS
-	public static volatile HashSet<String> haveKeys = new HashSet<String>();
-	public static volatile HashSet<String> haveNotKeys = new HashSet<String>();
+	public static volatile Set<String> haveKeys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());	
+	public static volatile Set<String> haveNotKeys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	public static volatile Queue<Request> bufferingQueue = new LinkedList<Request>();
 	// Implement Logical CLock Timestamp
 	public static volatile int logicalClockTimeStamp = 0;

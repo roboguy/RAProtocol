@@ -88,14 +88,19 @@ public class Service {
 			
 			} //Else block ends
 		} // Synchronized block ends
+		
 		logger.debug("Blocked on pending key requests ....");
+		
 		while(true)
 		{
 			if(Shared.haveNotKeys.isEmpty())
 			{
-				Shared.isInCS=true;
-				Shared.isRequestedCS=false;
-				criticalSection();
+				logger.debug("Got All Keys.");
+				synchronized (Shared.objForLock) {
+					Shared.isInCS=true;
+					Shared.isRequestedCS=false;
+					criticalSection();
+				}
 				return;
 			}
 			
