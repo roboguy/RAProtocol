@@ -1,14 +1,9 @@
 {
-  "N": 2,
+  "N": 1,
   "nodes": [
     {
         "id": 0,
         "host": "dc01",
-        "port": "5000"
-    },
-    {
-        "id": 1,
-        "host": "dc02",
         "port": "5000"
     }
   ],
@@ -18,7 +13,7 @@
     "necessary_arg2": "",
     "optional_arg1": ""
   },
-  "total_Number_Of_Requests": 1000,
+  "total_Number_Of_Requests": 10,
   "mean_Consecutive_Request_Delay": 50,
   "mean_Duration_Of_CS": 10
 }

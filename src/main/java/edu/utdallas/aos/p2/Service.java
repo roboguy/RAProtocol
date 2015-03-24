@@ -1,5 +1,6 @@
 package edu.utdallas.aos.p2;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -143,6 +144,7 @@ public class Service {
 	{
 		// Lock the Queue so that no entry is added further.
 		//Process the entire buffered Queue and satisfy the requests by sending keys.
+		int requestCounter = 0;
 		logger.debug("In CS Leave. Setting isInCS = false. isRequestedCS= false");
 		Shared.isInCS=false;
 		Shared.isRequestedCS=false;
@@ -150,10 +152,11 @@ public class Service {
 		synchronized (Shared.objForLock) {
 			while(!Shared.bufferingQueue.isEmpty())
 			{
+				requestCounter++;
 				Request request	=	Shared.bufferingQueue.poll();
 				fulfillReq(request);
 			}
-			
+			logger.debug("Sent " + requestCounter + "requests.");
 		}
 		
 	}
@@ -172,19 +175,24 @@ public class Service {
 		File csfile=new File("csFile.txt");
 		try {
 			Scanner scanner=new Scanner(csfile);
-			int value=scanner.nextInt();
-			logger.debug("Read value: " + value);
-			value++;
+			String valueStr =scanner.nextLine();
 			scanner.close();
-			FileWriter f2 = new FileWriter("csFile.txt");
-            f2.write(value);
+			
+			Integer value = Integer.parseInt(valueStr);
+			logger.debug("Read value: " + value);
+			
+			value++;
+			String valuePlus = value.toString();
+			BufferedWriter br = new BufferedWriter(new FileWriter(new File("csFile.txt")));
+            br.write(valuePlus);
+            br.write("\n");
+            br.close();
             logger.debug("Successfully wrote value: " + value);
-            f2.close();
 		}  catch (IOException e) {
 			e.printStackTrace();
 		}
 		try {
-			Thread.sleep(5);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

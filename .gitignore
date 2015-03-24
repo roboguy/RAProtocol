@@ -6,3 +6,7 @@ logs
 /target/
 /bin
 *.log
+KEYS
+keys
+csfile.txt
+*.json

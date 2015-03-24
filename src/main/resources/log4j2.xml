@@ -34,5 +34,10 @@
 			<AppenderRef ref="MyFile" />
 			<AppenderRef ref="Console" />
 		</Logger>
+		<Logger name="edu.utdallas.aos.p2.Service" level="TRACE"
+			additivity="false">
+			<AppenderRef ref="MyFile" />
+			<AppenderRef ref="Console" />
+		</Logger>
 	</Loggers>
 </Configuration>

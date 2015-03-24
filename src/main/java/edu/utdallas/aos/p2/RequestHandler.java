@@ -1,9 +1,15 @@
 package edu.utdallas.aos.p2;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
+
+import edu.utdallas.aos.p2.config.Node;
 
 public class RequestHandler extends Thread {
 
@@ -135,6 +141,23 @@ public class RequestHandler extends Thread {
 				Shared.haveNotKeys.add(concatKey);
 			}
 			// TODO: Key has not been sent to Other Nodes(TCP)
+			Integer receiverID = request.getNodeId();
+			Node receiver = Shared.nodeInfos.get(receiverID);
+			String hostName = receiver.getHost();
+			Integer port = Integer.parseInt(receiver.getPort());
+			try
+			{
+				logger.debug("sending request to host: " + hostName);
+				Socket clientSocket = new Socket(hostName,port);
+				PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
+				writer.println(message);
+				writer.close();
+				clientSocket.close();
+			}
+			catch(IOException ex)
+			{
+				ex.printStackTrace();
+			}
 
 		}//Syncronized block ends
 		
