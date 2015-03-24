@@ -88,8 +88,6 @@ public class Service {
 				
 				//TODO: Check if we need to update TS here ?
 				Shared.logicalClockTimeStamp++;
-				
-				
 			
 			} //Else block ends
 		} // Synchronized block ends

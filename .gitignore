@@ -8,5 +8,5 @@ logs
 *.log
 KEYS
 keys
-csfile.txt
+*csFile.txt
 *.json

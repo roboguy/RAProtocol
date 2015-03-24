@@ -75,7 +75,13 @@ public class RequestHandler extends Thread {
 							Shared.bufferingQueue.add(request);
 						}
 					} else {
-						giveUpKey(request);
+						//Some bug here.
+						Request sendResponse=new Request();
+						sendResponse.setKey(request.getKey());
+						sendResponse.setNodeId(request.getNodeId());
+						sendResponse.setTimeStamp(request.getTimeStamp());
+						sendResponse.setType("RESPONSE");
+						giveUpKey(sendResponse);
 
 					}
 
@@ -144,7 +150,7 @@ public class RequestHandler extends Thread {
 			Integer receiverID = request.getNodeId();
 			Node receiver = Shared.nodeInfos.get(receiverID);
 			String hostName = receiver.getHost();
-			Integer port = Integer.parseInt(receiver.getPort());
+			Integer port = Integer.parseInt(receiver.getPort()); 	
 			try
 			{
 				logger.debug("sending request to host: " + hostName);
