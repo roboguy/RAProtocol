@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.Gson;
 
 import edu.utdallas.aos.p2.config.Config;
+import edu.utdallas.aos.p2.config.Node;
 
 
 /*
@@ -48,6 +49,15 @@ public class App {
 		Shared.myInfo = conf.getNodes().get(nodeID);
 		//String myHost = Shared.myInfo.getHost();
 		String port = Shared.myInfo.getPort();
+		
+		/*
+		 * Initialize nodeInfos hasmap
+		 */
+		for(Node node : conf.getNodes()){
+			Integer id = node.getId();
+			Shared.nodeInfos.put(id, node);
+		}
+		
 		Integer portNum = Integer.parseInt(port);
 		Server server = Server.getInstance();
 		server.setPort(portNum);
@@ -58,7 +68,6 @@ public class App {
 		try {
 			initKeys(nodeID, conf);
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		server.start();
@@ -102,29 +111,37 @@ public class App {
 	private static void initKeys(Integer nodeID, Config conf) throws FileNotFoundException{
 		Scanner scanner = new Scanner(new File("KEYS"));
 		for(int rowCount = 0; rowCount < nodeID; rowCount++){
-			String line = scanner.nextLine();
+			scanner.nextLine();
 		}
 		String allocatedKeys = scanner.nextLine().trim();
 		scanner.close();
 		String[] keys = allocatedKeys.split("\\s+");
-		for(int count = 0; count < keys.length; count++){
-			if(count == nodeID){
-				continue;
-			}else{
-				String key = keys[count];
-				if(key.equals("1")){
-					Integer smaller = Math.min(count, nodeID);
-					Integer bigger 	= Math.max(count, nodeID);
-					String ownedKey = smaller + "," + bigger;
-					Shared.haveKeys.add(ownedKey);
-				}else if(key.equals("0")){
-					Integer smaller = Math.min(count, nodeID);
-					Integer bigger 	= Math.max(count, nodeID);
-					String notHasKey = smaller + "," + bigger;
-					Shared.haveNotKeys.add(notHasKey);
+		if(keys.length <= 1){
+			Integer smaller = Math.min(0, nodeID);
+			Integer bigger 	= Math.max(0, nodeID);
+			String ownedKey = smaller + "," + bigger;
+			Shared.haveKeys.add(ownedKey);
+		} else {
+			for(int count = 0; count < keys.length; count++){
+				if(count == nodeID){
+					continue;
+				}else{
+					String key = keys[count];
+					if(key.equals("1")){
+						Integer smaller = Math.min(count, nodeID);
+						Integer bigger 	= Math.max(count, nodeID);
+						String ownedKey = smaller + "," + bigger;
+						Shared.haveKeys.add(ownedKey);
+					}else if(key.equals("0")){
+						Integer smaller = Math.min(count, nodeID);
+						Integer bigger 	= Math.max(count, nodeID);
+						String notHasKey = smaller + "," + bigger;
+						Shared.haveNotKeys.add(notHasKey);
+					}
 				}
-			}
-		}//For each key loop ends
+			}//For each key loop ends
+		}
+		
 		
 	}
 

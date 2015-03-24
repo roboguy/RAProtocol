@@ -118,6 +118,7 @@ public class RequestHandler extends Thread {
 	 * Giving up the key and updating HashSet
 	 */
 	public void giveUpKey(Request request) {
+		
 		synchronized (Shared.objForLock) {
 			// comparing and adding smaller with bigger
 			String concatKey = "";
@@ -128,12 +129,14 @@ public class RequestHandler extends Thread {
 				concatKey = Shared.myInfo.getId().toString() + ","
 						+ request.getNodeId().toString();
 			}
+			logger.debug("Giving up key: " + concatKey);
 			if (Shared.haveKeys.contains(concatKey)) {
 				Shared.haveKeys.remove(concatKey);
 				Shared.haveNotKeys.add(concatKey);
 			}
 			// TODO: Key has not been sent to Other Nodes(TCP)
 
-		}
+		}//Syncronized block ends
+		
 	}
 }

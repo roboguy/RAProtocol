@@ -21,7 +21,7 @@ public class Service {
 	public void csEnter()
 	{
 		//UPDATE MY REQUEST.TIMESTAMP
-		logger.debug("Updating Timestamp..");
+		logger.debug("Updating Timestamp & isRequestedCS = true.");
 		Shared.logicalClockTimeStamp++;
 		Shared.isRequestedCS= true;
 		
@@ -30,13 +30,15 @@ public class Service {
 			// isinCS=true
 			// execute CriticalSection
 			// call csLeave();
-		synchronized (Shared.objForLock) {
 		
+		synchronized (Shared.objForLock) {
 			if(Shared.haveNotKeys.isEmpty())
 			{
+				logger.debug("All keys found. isInCS = true");
 				Shared.isInCS=true;
 				logger.debug("Entering Critical Section");
 				criticalSection();
+				logger.debug("Finished Critical Section");
 				return;
 				//csLeave();
 			}
@@ -46,8 +48,10 @@ public class Service {
 				//Else if (Has not is not null)
 				//get corresponding keys from various Servers 
 				// wait till response (while its not null)
+				logger.debug("Keys not found, updating requestedTimestamp to " + Shared.logicalClockTimeStamp);
 				Shared.requestTimeStamp=Shared.logicalClockTimeStamp;
 				Iterator<String> iSet=Shared.haveNotKeys.iterator();
+				logger.debug("Sending request for missing keys");
 				while(iSet.hasNext())
 				{
 					String key=iSet.next();
@@ -95,7 +99,7 @@ public class Service {
 		{
 			if(Shared.haveNotKeys.isEmpty())
 			{
-				logger.debug("Got All Keys.");
+				logger.debug("Got All Keys.");	
 				synchronized (Shared.objForLock) {
 					Shared.isInCS=true;
 					Shared.isRequestedCS=false;
@@ -109,21 +113,19 @@ public class Service {
 		//csLeave();
 	}
 	private Node getNodeInfo(String sendNodeId) {
-		//TODO: Use Shared.nodeInfo<Integer(nodeID), String(host:port)> split on ":".
-		Node n =new Node();
-		n.setId(1);
-		n.setHost("localhost");
-		n.setPort("5001");
+		Integer id = Integer.parseInt(sendNodeId);
+		Node n = Shared.nodeInfos.get(id);
+		logger.debug("Got node with ID: " + n.getId() + "host:" + n.getHost() + "port:" + n.getPort());
 		return n;
 	}
 	
-	//TODO: Add logging statements here.
 	public void sendKeyRequest(String message, Node sendNode)
 	{
 		String hostName=sendNode.getHost();
 		Integer port=Integer.parseInt(sendNode.getPort());
 		try
 		{
+			logger.debug("sending request to host: " + hostName);
 			Socket clientSocket = new Socket(hostName,port);
 			PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
 			writer.println(message);
@@ -135,19 +137,20 @@ public class Service {
 			ex.printStackTrace();
 		}
 		
-		
 	}
+	
 	public void csLeave()
 	{
 		// Lock the Queue so that no entry is added further.
 		//Process the entire buffered Queue and satisfy the requests by sending keys.
+		logger.debug("In CS Leave. Setting isInCS = false. isRequestedCS= false");
 		Shared.isInCS=false;
 		Shared.isRequestedCS=false;
 		logger.debug("Processing Queue in CS Leave");
 		synchronized (Shared.objForLock) {
 			while(!Shared.bufferingQueue.isEmpty())
 			{
-				Request request=Shared.bufferingQueue.poll();
+				Request request	=	Shared.bufferingQueue.poll();
 				fulfillReq(request);
 			}
 			
@@ -170,7 +173,7 @@ public class Service {
 		try {
 			Scanner scanner=new Scanner(csfile);
 			int value=scanner.nextInt();
-			logger.debug("Read value: " +value);
+			logger.debug("Read value: " + value);
 			value++;
 			scanner.close();
 			FileWriter f2 = new FileWriter("csFile.txt");

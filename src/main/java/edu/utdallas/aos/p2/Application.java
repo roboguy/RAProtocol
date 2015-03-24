@@ -30,10 +30,18 @@ public class Application extends Thread {
 		Service service = new Service();
 		
 		for(int reqCount = 1; reqCount <= numberOfRequests; reqCount++){
+			Long startTime = System.currentTimeMillis();
 			logger.debug("Making CS Enter Request. Request Count: " + reqCount);
 			service.csEnter();
 			logger.debug("Leaving CS for Request Count: " + reqCount);
 			service.csLeave();
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Long stopTime = System.currentTimeMillis();
+			logger.debug("IN CS FOR: " + (stopTime - startTime) + "ms");
 		}
 	}
 
