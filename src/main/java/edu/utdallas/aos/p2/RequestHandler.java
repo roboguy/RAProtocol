@@ -50,7 +50,7 @@ public class RequestHandler extends Thread {
 		logger.debug("Received a request from " + request.getNodeId());
 		// Update my latest timestamp.
 		//Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
-		logger.debug("53-Updated Timestamp to:" + Shared.logicalClockTimeStamp);
+		logger.debug("53-Updated Timestamp to: " + Shared.logicalClockTimeStamp);
 		if (request.getType().equals("REQUEST")) {
 			// Latch to BLOCK CS ENTER
 			
@@ -58,6 +58,7 @@ public class RequestHandler extends Thread {
 			 * CS Buffer the request for later processing.
 			 */
 			if (Shared.isInCS) {
+				
 				synchronized (Shared.objForLock) {
 					// Set the value in Queue.
 					// 1.a If Yes -> Buffer the request in queue (Object of
@@ -82,14 +83,14 @@ public class RequestHandler extends Thread {
 					
 					// If(request.getTimestamp > Shared.myRequestTS)
 					// Add it to the buffer queue, this means we have higher priority to execute CS.
-					logger.debug("Requested Timestamp: " + request.getTimeStamp() + " Logical TS:" + Shared.logicalClockTimeStamp);
+					logger.debug("Requested Timestamp: " + request.getTimeStamp() + " Logical TS: " + Shared.logicalClockTimeStamp);
 					//Chaged to Shared.requestedTimeStamp
 					if (request.getTimeStamp() >= Shared.requestTimeStamp) {
 						synchronized (Shared.objForLock) {
 							
 							//Do max of timestamps + 1
 							Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
-							logger.debug("Buffering Request with timestamp" + request.getTimeStamp() + " from node" + request.getNodeId());
+							logger.debug("Buffering Request with timestamp: " + request.getTimeStamp() + " from node: " + request.getNodeId());
 							Shared.bufferingQueue.add(request);
 						}
 						/*
@@ -98,7 +99,7 @@ public class RequestHandler extends Thread {
 						 * so give up the key but put RequestedCS as Timestamp.
 						 * Update our timestamp for this send event.
 						 */
-						// RUCHIR - Again send the request with old timestamp to enter
+						 // RUCHIR - Again send the request with old timestamp to enter
 					} else {
 						logger.debug("Requst timestamp is less than my timestamp.");
 						//Some bug here.
@@ -109,7 +110,7 @@ public class RequestHandler extends Thread {
 						
 						//Timestamp++ not max because our timestamp is already bigger
 						Shared.logicalClockTimeStamp++;
-						logger.debug("105 - Updated Timestamp to"+ Shared.logicalClockTimeStamp +" reflect send event.");
+						logger.debug("105 - Updated Timestamp to: "+ Shared.logicalClockTimeStamp +" reflect send event.");
 						
 						//change to requestedCS Timestamp [DONE]
 						response.setTimeStamp(Shared.requestTimeStamp);
@@ -128,7 +129,7 @@ public class RequestHandler extends Thread {
 				} //IF REQUESTED FOR CS ENDS
 				
 				/* else NOT REQUSTED FOR CS & not in CS
-				 * means we have to give up the key and update have and have not sets.
+				 * means we have to give up the key and update the have and have not sets.
 				 * we update our timestamp to mark the send event.
 				 */
 				else {
@@ -177,7 +178,12 @@ public class RequestHandler extends Thread {
 				Shared.haveNotKeys.remove(concatKey);
 				Shared.haveKeys.add(concatKey);
 			}
-		}
+			
+			//If all keys are with us then notify waiting threads
+			if(Shared.haveNotKeys.isEmpty()){
+				Shared.objForLock.notify();
+			}
+		}//Synchronized block ends
 	}
 
 	/*

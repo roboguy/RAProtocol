@@ -3,7 +3,6 @@ package edu.utdallas.aos.p2;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 
-@Generated("org.jsonschema2pojo")
 public class Message {
 
 	@Expose

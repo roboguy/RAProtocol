@@ -18,163 +18,152 @@ import edu.utdallas.aos.p2.config.Node;
 
 public class Service {
 	private Logger logger = LogManager.getLogger(Service.class);
-	//IMportant :- Take care for Concurrency with respect to HashMaps for Have and Havenot ,Maps
-	public void csEnter()
-	{
-		//UPDATE MY REQUEST.TIMESTAMP
+
+	// IMportant :- Take care for Concurrency with respect to HashMaps for Have
+	// and Havenot ,Maps
+	public void csEnter() {
+		// UPDATE MY REQUEST.TIMESTAMP
 		Shared.logicalClockTimeStamp++;
-		logger.debug("Updating Timestamp to:" + Shared.logicalClockTimeStamp + " & isRequestedCS = true.");
-		Shared.isRequestedCS= true;
-		
+		logger.debug("Updating Timestamp to:" + Shared.logicalClockTimeStamp
+				+ " & isRequestedCS = true.");
+		Shared.isRequestedCS = true;
+
 		// Check for Have and Have not keys
-		//if (Has all keys)
-			// isinCS=true
-			// execute CriticalSection
-			// call csLeave();
-		
+		// if (Has all keys)
+		// isinCS=true
+		// execute CriticalSection
+		// call csLeave();
+
 		synchronized (Shared.objForLock) {
-			if(Shared.haveNotKeys.isEmpty())
-			{
+			if (Shared.haveNotKeys.isEmpty()) {
 				logger.debug("All keys found. isInCS = true");
-				Shared.isInCS=true;
+				Shared.isInCS = true;
 				logger.debug("Entering Critical Section");
 				criticalSection();
 				logger.debug("Finished Critical Section");
 				return;
-				//csLeave();
+				// csLeave();
 			}
-			//TODO: Add more logging statements here
-			else
-			{
-				//Else if (Has not is not null)
-				//get corresponding keys from various Servers 
+			// TODO: Add more logging statements here
+			else {
+				// Else if (Has not is not null)
+				// get corresponding keys from various Servers
 				// wait till response (while its not null)
-				logger.debug("Keys not found, updating requestedTimestamp to " + Shared.logicalClockTimeStamp);
-				Shared.requestTimeStamp=Shared.logicalClockTimeStamp;
-				Iterator<String> iSet=Shared.haveNotKeys.iterator();
+				logger.debug("Keys not found, updating requestedTimestamp to "
+						+ Shared.logicalClockTimeStamp);
+				Shared.requestTimeStamp = Shared.logicalClockTimeStamp;
+				Iterator<String> iSet = Shared.haveNotKeys.iterator();
 				logger.debug("Sending request for missing keys");
-				while(iSet.hasNext())
-				{
-					String key=iSet.next();
-					String split[]=key.split(",");
-					String sendNodeId="";
-					if(!(split[0].equals(Shared.myInfo.getId().toString())))
-					{
-						sendNodeId=split[0];
-						
-					}
-					else
-					{
-						sendNodeId=split[1];
-						
+				while (iSet.hasNext()) {
+					String key = iSet.next();
+					String split[] = key.split(",");
+					String sendNodeId = "";
+					if (!(split[0].equals(Shared.myInfo.getId().toString()))) {
+						sendNodeId = split[0];
+
+					} else {
+						sendNodeId = split[1];
+
 					}
 					logger.debug("Sending key request to node: " + sendNodeId);
-					//Calling the information from Shared List of all Node Info
-					Node sendNode=getNodeInfo(sendNodeId);
-					
-					if(!sendNodeId.equals(""))
-					{
-						Message rNode=new Message();
+					// Calling the information from Shared List of all Node Info
+					Node sendNode = getNodeInfo(sendNodeId);
+
+					if (!sendNodeId.equals("")) {
+						Message rNode = new Message();
 						rNode.setKey(key);
 						rNode.setNodeId(Shared.myInfo.getId());
-						rNode.setTimeStamp(Shared.requestTimeStamp); //Check if it is correct
+						rNode.setTimeStamp(Shared.requestTimeStamp); // Check if
+																		// it is
+																		// correct
 						rNode.setType("REQUEST");
-						Gson gson=new Gson();
-						//TODO: check if deserialization is correctly done or not.
-						String message=gson.toJson(rNode); 
-						sendKeyRequest(message,sendNode);
+						Gson gson = new Gson();
+						// TODO: check if deserialization is correctly done or
+						// not.
+						String message = gson.toJson(rNode);
+						sendKeyRequest(message, sendNode);
 					}
-				}//WHILE all request is sent
-				
-				//TODO: Check if we need to update TS here ?
+				}// WHILE all request is sent
+
+				// TODO: Check if we need to update TS here ?
 				Shared.logicalClockTimeStamp++;
-				logger.debug("Updated Time Stamp: " + Shared.logicalClockTimeStamp);
-			} //Else block ends
+				logger.debug("Updated Time Stamp: "
+						+ Shared.logicalClockTimeStamp);
+			} // Else block ends
 		} // Synchronized block ends
-		
+
 		logger.debug("Blocked on pending key requests ....");
-		
-		while(true)
-		{
-			try {
-				Thread.sleep(2);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if(Shared.haveNotKeys.isEmpty())
-			{
-				logger.debug("Got All Keys.");	
-				synchronized (Shared.objForLock) {
-					Shared.isInCS=true;
-					Shared.isRequestedCS=false;
-					criticalSection();
+
+		synchronized (Shared.objForLock) {
+			while(!Shared.haveNotKeys.isEmpty()){
+				try {
+					//Blocking call
+					Shared.objForLock.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-				return;
-			}
-			
-		}
-		
-		//csLeave();
+			}//While for spurious wait
+
+		}//Synchronized block
+
+		// csLeave();
 	}
+
 	private Node getNodeInfo(String sendNodeId) {
 		Integer id = Integer.parseInt(sendNodeId);
 		Node n = Shared.nodeInfos.get(id);
-		logger.debug("Got node with ID: " + n.getId() + "host:" + n.getHost() + "port:" + n.getPort());
+		logger.debug("Got node with ID: " + n.getId() + "host:" + n.getHost()
+				+ "port:" + n.getPort());
 		return n;
 	}
-	
-	public void sendKeyRequest(String message, Node sendNode)
-	{
-		String hostName=sendNode.getHost();
-		Integer port=Integer.parseInt(sendNode.getPort());
-		try
-		{
+
+	public void sendKeyRequest(String message, Node sendNode) {
+		String hostName = sendNode.getHost();
+		Integer port = Integer.parseInt(sendNode.getPort());
+		try {
 			logger.debug("sending request to host: " + hostName);
-			Socket clientSocket = new Socket(hostName,port);
+			Socket clientSocket = new Socket(hostName, port);
 			PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
 			writer.println(message);
 			writer.close();
 			clientSocket.close();
-		}
-		catch(IOException ex)
-		{
+		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		
+
 	}
-	
-	public void csLeave()
-	{
+
+	public void csLeave() {
 		// Lock the Queue so that no entry is added further.
-		//Process the entire buffered Queue and satisfy the requests by sending keys.
+		// Process the entire buffered Queue and satisfy the requests by sending
+		// keys.
 		int requestCounter = 0;
 		logger.debug("In CS Leave. Setting isInCS = false. isRequestedCS= false");
-		Shared.isInCS=false;
-		Shared.isRequestedCS=false;
-		logger.debug("Processing Queue in CS Leave");
 		synchronized (Shared.objForLock) {
-			
-			while(!Shared.bufferingQueue.isEmpty())
-			{
+			Shared.isInCS = false;
+			Shared.isRequestedCS = false;
+			logger.debug("Processing Queue in CS Leave");
+			while (!Shared.bufferingQueue.isEmpty()) {
 				requestCounter++;
-				Message request	=	Shared.bufferingQueue.poll();
+				Message request = Shared.bufferingQueue.poll();
 				fulfillReq(request);
 			}
-			logger.debug("Sent " + requestCounter + "requests.");
+			logger.debug("Sent " + requestCounter + " requests.");
 		}
-		
+
 	}
+
 	/*
 	 * This will fulfill the buffered request
 	 */
 	private void fulfillReq(Message request) {
 		Integer toNode = request.getNodeId();
-		RequestHandler reqhandler= new RequestHandler();
+		RequestHandler reqhandler = new RequestHandler();
 		logger.debug("Fulfilling Requests");
 		Shared.logicalClockTimeStamp++;
-		logger.debug("Service 176 - Updating Timestamp to:" + Shared.logicalClockTimeStamp);
-		//TODO: create a new RESPONSE with our nodeID and giving key
+		logger.debug("Service 176 - Updating Timestamp to:"
+				+ Shared.logicalClockTimeStamp);
+		// TODO: create a new RESPONSE with our nodeID and giving key
 		Message response = new Message();
 		response.setType("RESPONSE");
 		response.setTimeStamp(Shared.logicalClockTimeStamp);
@@ -184,33 +173,36 @@ public class Service {
 		reqhandler.message = gson.toJson(response);
 		reqhandler.giveUpKey(response, toNode);
 	}
-	public void criticalSection()
-	{
-		//read the file & increment it by 1 . This will be used for testing the mutual exclusion.
-		File csfile=new File("csFile.txt");
+
+	public void criticalSection() {
+		// read the file & increment it by 1 . This will be used for testing the
+		// mutual exclusion.
+		File csfile = new File("csFile.txt");
 		try {
-			Scanner scanner=new Scanner(csfile);
-			String valueStr =scanner.nextLine();
+			Scanner scanner = new Scanner(csfile);
+			String valueStr = scanner.nextLine();
 			scanner.close();
-			
+
 			Integer value = Integer.parseInt(valueStr);
 			logger.debug("Read value: " + value);
-			
+
 			value++;
 			String valuePlus = value.toString();
-			BufferedWriter br = new BufferedWriter(new FileWriter(new File("csFile.txt")));
-            br.write(valuePlus);
-            br.write("\n");
-            br.close();
-            logger.debug("Successfully wrote value: " + value);
-		}  catch (IOException e) {
+			BufferedWriter br = new BufferedWriter(new FileWriter(new File(
+					"csFile.txt")));
+			br.write(valuePlus);
+			br.write("\n");
+			br.close();
+			logger.debug("Successfully wrote value: " + value);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		try {
 			Thread.sleep(30000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 }
