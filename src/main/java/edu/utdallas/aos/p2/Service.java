@@ -96,6 +96,12 @@ public class Service {
 		
 		while(true)
 		{
+			try {
+				Thread.sleep(2);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if(Shared.haveNotKeys.isEmpty())
 			{
 				logger.debug("Got All Keys.");	

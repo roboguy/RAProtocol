@@ -53,7 +53,10 @@ public class RequestHandler extends Thread {
 				Shared.logicalClockTimeStamp) + 1;
 		if (request.getType().equals("REQUEST")) {
 			// Latch to BLOCK CS ENTER
-			// check whether the node is in Critical Section
+			
+			/* check whether the node is in Critical Section if it is in 
+			 * CS Buffer the request for later processing.
+			 */
 			if (Shared.isInCS) {
 				synchronized (Shared.objForLock) {
 					// Set the value in Queue.
@@ -63,34 +66,62 @@ public class RequestHandler extends Thread {
 				}
 
 			}
+			
 			// 2. Else -> Check the Timestamp -> request.getTimeStamp()
+			/*
+			 * Else we are not inCS
+			 */
 			else {
-				// check my requested timestamp with the request.getTImestamp()
+				/*
+				 * Check if we have a pending CS request
+				 * If we have a pending CS request then check received request's timestamp
+				 */
 				if (Shared.isRequestedCS) {
+					
 					// If(request.getTimestamp > Shared.myRequestTS)
-					// Add it to the buffer queue
-					// Latch release and free to enter CS
+					// Add it to the buffer queue, this means we have higher priority to execute CS.
 					if (request.getTimeStamp() >= Shared.logicalClockTimeStamp) {
 						synchronized (Shared.objForLock) {
 							Shared.bufferingQueue.add(request);
 						}
+						/*
+						 * Else we do not have a higher priority to execute CS
+						 * means we have to give up the key, but we have a pending request.
+						 * so give up the key but put RequestedCS as Timestamp.
+						 * Update our timestamp for this send event.
+						 */
+						// RUCHIR - Again send the request with old timestamp to enter
 					} else {
 						//Some bug here.
 						Request sendResponse=new Request();
-						sendResponse.setKey(request.getKey());
-						sendResponse.setNodeId(request.getNodeId());
-						sendResponse.setTimeStamp(request.getTimeStamp());
 						sendResponse.setType("RESPONSE");
+						sendResponse.setKey(request.getKey());
+						Shared.logicalClockTimeStamp++;
+						
+						//TODO:change to requestedCS Timestamp.
+						sendResponse.setTimeStamp(Shared.logicalClockTimeStamp);
+						sendResponse.setNodeId(Shared.myInfo.getId());
+						
 						giveUpKey(sendResponse);
 
 					}
 
-				}
-				// else
-				// Give up the key and update have and have not sets.
-				// RUCHIR - Again send the request with old timestamp to enter
-				// CS
+				} //IF REQUESTED FOR CS ENDS
+				
+				/* else NOT REQUSTED FOR CS & not in CS
+				 * means we have to give up the key and update have and have not sets.
+				 * we update our timestamp to mark the send event.
+				 */
 				else {
+					Request sendResponse=new Request();
+					sendResponse.setType("RESPONSE");
+					sendResponse.setKey(request.getKey());
+					Shared.logicalClockTimeStamp++;
+					
+					//TODO: change this to our logical timestamp
+					sendResponse.setTimeStamp(Shared.requestTimeStamp);
+					sendResponse.setNodeId(Shared.myInfo.getId());
+					
 					giveUpKey(request);
 
 				}
@@ -101,15 +132,15 @@ public class RequestHandler extends Thread {
 		// Check Have not set is empty
 		// If it is empty then release Latch
 		else if (request.getType().equals("RESPONSE")) {
-			addKeys(request);
+			addKey(request);
 		}
 	}
 
 	/*
-	 * //Update have & have not set // Check Have not set is empty //If it is
-	 * empty then release Latch
+	 * Update have & have not set 
+	 * Check Have not set is empty
 	 */
-	private void addKeys(Request request) {
+	private void addKey(Request request) {
 		synchronized (Shared.objForLock) {
 			String concatKey = "";
 			if (Shared.myInfo.getId() > request.getNodeId()) {
