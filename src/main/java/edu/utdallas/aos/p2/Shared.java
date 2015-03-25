@@ -14,13 +14,13 @@ public class Shared {
 	
 	public static volatile boolean isInCS = false;
 	//TODO: change isRequestedCS to false
-	public static volatile boolean isRequestedCS = true; // if I have requested
+	public static volatile boolean isRequestedCS = false; // if I have requested
 															// for CS
 	public static volatile Set<String> haveKeys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());	
 	public static volatile Set<String> haveNotKeys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 	public static volatile Queue<Message> bufferingQueue = new LinkedList<Message>();
 	// Implement Logical CLock Timestamp
-	public static volatile int logicalClockTimeStamp = 10;
+	public static volatile int logicalClockTimeStamp = 0;
 	// Request timestamp - kaunsa time par request hui thi.
 	public static volatile int requestTimeStamp = 1;
 	public static volatile Object objForLock = new Object();
