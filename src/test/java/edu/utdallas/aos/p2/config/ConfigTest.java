@@ -1,10 +1,5 @@
 package edu.utdallas.aos.p2.config;
 
-import java.util.Scanner;
-
-import org.junit.Test;
-
-import com.google.gson.Gson;
 
 public class ConfigTest {
 	

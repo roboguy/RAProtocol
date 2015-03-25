@@ -1,6 +1,5 @@
 package edu.utdallas.aos.p2;
 
-import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 
 public class Message {

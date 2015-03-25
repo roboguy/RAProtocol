@@ -3,17 +3,12 @@
   "nodes": [
     {
         "id": 0,
-        "host": "dc01.utdallas.edu",
+        "host": "localhost",
         "port": "50000"
     },
     {
         "id": 1,
-        "host": "dc02.utdallas.edu",
-        "port": "50001"
-    },
-    {
-        "id": 2,
-        "host": "dc03.utdallas.edu",
+        "host": "localhost",
         "port": "50001"
     }
   ],
@@ -23,7 +18,7 @@
     "necessary_arg2": "",
     "optional_arg1": ""
   },
-  "total_Number_Of_Requests": 10,
+  "total_Number_Of_Requests": 100,
   "mean_Consecutive_Request_Delay": 50,
   "mean_Duration_Of_CS": 10
 }
