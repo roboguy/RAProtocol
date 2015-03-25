@@ -22,8 +22,8 @@ public class Service {
 	public void csEnter()
 	{
 		//UPDATE MY REQUEST.TIMESTAMP
-		logger.debug("Updating Timestamp & isRequestedCS = true.");
 		Shared.logicalClockTimeStamp++;
+		logger.debug("Updating Timestamp to:" + Shared.logicalClockTimeStamp + " & isRequestedCS = true.");
 		Shared.isRequestedCS= true;
 		
 		// Check for Have and Have not keys
@@ -74,7 +74,7 @@ public class Service {
 					
 					if(!sendNodeId.equals(""))
 					{
-						Request rNode=new Request();
+						Message rNode=new Message();
 						rNode.setKey(key);
 						rNode.setNodeId(Shared.myInfo.getId());
 						rNode.setTimeStamp(Shared.requestTimeStamp); //Check if it is correct
@@ -88,7 +88,7 @@ public class Service {
 				
 				//TODO: Check if we need to update TS here ?
 				Shared.logicalClockTimeStamp++;
-			
+				logger.debug("Updated Time Stamp: " + Shared.logicalClockTimeStamp);
 			} //Else block ends
 		} // Synchronized block ends
 		
@@ -154,10 +154,11 @@ public class Service {
 		Shared.isRequestedCS=false;
 		logger.debug("Processing Queue in CS Leave");
 		synchronized (Shared.objForLock) {
+			
 			while(!Shared.bufferingQueue.isEmpty())
 			{
 				requestCounter++;
-				Request request	=	Shared.bufferingQueue.poll();
+				Message request	=	Shared.bufferingQueue.poll();
 				fulfillReq(request);
 			}
 			logger.debug("Sent " + requestCounter + "requests.");
@@ -167,11 +168,21 @@ public class Service {
 	/*
 	 * This will fulfill the buffered request
 	 */
-	private void fulfillReq(Request request) {
-	
+	private void fulfillReq(Message request) {
+		Integer toNode = request.getNodeId();
 		RequestHandler reqhandler= new RequestHandler();
 		logger.debug("Fulfilling Requests");
-		reqhandler.giveUpKey(request);
+		Shared.logicalClockTimeStamp++;
+		logger.debug("Service 176 - Updating Timestamp to:" + Shared.logicalClockTimeStamp);
+		//TODO: create a new RESPONSE with our nodeID and giving key
+		Message response = new Message();
+		response.setType("RESPONSE");
+		response.setTimeStamp(Shared.logicalClockTimeStamp);
+		response.setNodeId(Shared.myInfo.getId());
+		response.setKey(request.getKey());
+		Gson gson = new Gson();
+		reqhandler.message = gson.toJson(response);
+		reqhandler.giveUpKey(response, toNode);
 	}
 	public void criticalSection()
 	{
@@ -196,7 +207,7 @@ public class Service {
 			e.printStackTrace();
 		}
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(30000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

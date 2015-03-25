@@ -46,11 +46,11 @@ public class RequestHandler extends Thread {
 		 *  This will not work as the request object will be empty. 
 		 */
 		
-		Request request = gson.fromJson(message, Request.class);
+		Message request = gson.fromJson(message, Message.class);
 		logger.debug("Received a request from " + request.getNodeId());
 		// Update my latest timestamp.
-		Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),
-				Shared.logicalClockTimeStamp) + 1;
+		//Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
+		logger.debug("53-Updated Timestamp to:" + Shared.logicalClockTimeStamp);
 		if (request.getType().equals("REQUEST")) {
 			// Latch to BLOCK CS ENTER
 			
@@ -62,6 +62,8 @@ public class RequestHandler extends Thread {
 					// Set the value in Queue.
 					// 1.a If Yes -> Buffer the request in queue (Object of
 					// Request Class)
+					//logger.debug("Buffering Request with timestamp" + request.getTimeStamp() + " from node" + request.getNodeId());
+					Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
 					Shared.bufferingQueue.add(request);
 				}
 
@@ -80,8 +82,14 @@ public class RequestHandler extends Thread {
 					
 					// If(request.getTimestamp > Shared.myRequestTS)
 					// Add it to the buffer queue, this means we have higher priority to execute CS.
-					if (request.getTimeStamp() >= Shared.logicalClockTimeStamp) {
+					logger.debug("Requested Timestamp: " + request.getTimeStamp() + " Logical TS:" + Shared.logicalClockTimeStamp);
+					//Chaged to Shared.requestedTimeStamp
+					if (request.getTimeStamp() >= Shared.requestTimeStamp) {
 						synchronized (Shared.objForLock) {
+							
+							//Do max of timestamps + 1
+							Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
+							logger.debug("Buffering Request with timestamp" + request.getTimeStamp() + " from node" + request.getNodeId());
 							Shared.bufferingQueue.add(request);
 						}
 						/*
@@ -92,17 +100,28 @@ public class RequestHandler extends Thread {
 						 */
 						// RUCHIR - Again send the request with old timestamp to enter
 					} else {
+						logger.debug("Requst timestamp is less than my timestamp.");
 						//Some bug here.
-						Request sendResponse=new Request();
-						sendResponse.setType("RESPONSE");
-						sendResponse.setKey(request.getKey());
+						Message response = new Message();
+						response.setType("RESPONSE");
+						response.setKey(request.getKey());
+						logger.debug("Before update: "+ Shared.logicalClockTimeStamp);
+						
+						//Timestamp++ not max because our timestamp is already bigger
 						Shared.logicalClockTimeStamp++;
+						logger.debug("105 - Updated Timestamp to"+ Shared.logicalClockTimeStamp +" reflect send event.");
 						
-						//TODO:change to requestedCS Timestamp.
-						sendResponse.setTimeStamp(Shared.logicalClockTimeStamp);
-						sendResponse.setNodeId(Shared.myInfo.getId());
+						//change to requestedCS Timestamp [DONE]
+						response.setTimeStamp(Shared.requestTimeStamp);
+						response.setNodeId(Shared.myInfo.getId());
+						Gson gson1 = new Gson();
+						this.message = gson1.toJson(response);
 						
-						giveUpKey(sendResponse);
+						/*
+						 * we are sending a response with our node id and key
+						 * to the node we received a request for key from.
+						 */
+						giveUpKey(response, request.getNodeId());
 
 					}
 
@@ -113,16 +132,19 @@ public class RequestHandler extends Thread {
 				 * we update our timestamp to mark the send event.
 				 */
 				else {
-					Request sendResponse=new Request();
-					sendResponse.setType("RESPONSE");
-					sendResponse.setKey(request.getKey());
+					Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
+					Message response = new Message();
+					response.setType("RESPONSE");
+					response.setKey(request.getKey());
 					Shared.logicalClockTimeStamp++;
+					logger.debug("Updated TimeStamp to: " + Shared.logicalClockTimeStamp);
+					//change this to our logical timestamp [DONE]
+					response.setTimeStamp(Shared.logicalClockTimeStamp);
+					response.setNodeId(Shared.myInfo.getId());
 					
-					//TODO: change this to our logical timestamp
-					sendResponse.setTimeStamp(Shared.requestTimeStamp);
-					sendResponse.setNodeId(Shared.myInfo.getId());
-					
-					giveUpKey(request);
+					Gson gson2 = new Gson();
+					this.message = gson2.toJson(response);
+					giveUpKey(response, request.getNodeId());
 
 				}
 			}
@@ -132,6 +154,7 @@ public class RequestHandler extends Thread {
 		// Check Have not set is empty
 		// If it is empty then release Latch
 		else if (request.getType().equals("RESPONSE")) {
+			Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),	Shared.logicalClockTimeStamp) + 1;
 			addKey(request);
 		}
 	}
@@ -140,7 +163,7 @@ public class RequestHandler extends Thread {
 	 * Update have & have not set 
 	 * Check Have not set is empty
 	 */
-	private void addKey(Request request) {
+	private void addKey(Message request) {
 		synchronized (Shared.objForLock) {
 			String concatKey = "";
 			if (Shared.myInfo.getId() > request.getNodeId()) {
@@ -159,27 +182,29 @@ public class RequestHandler extends Thread {
 
 	/*
 	 * Giving up the key and updating HashSet
+	 * toSend - Message to send 
+	 * toNode - is node id of the node we need to message
 	 */
-	public void giveUpKey(Request request) {
+	public void giveUpKey(Message toSend, Integer toNodeID) {
 		
 		synchronized (Shared.objForLock) {
 			// comparing and adding smaller with bigger
 			String concatKey = "";
-			if (Shared.myInfo.getId() > request.getNodeId()) {
-				concatKey = request.getNodeId().toString() + ","
-						+ Shared.myInfo.getId().toString();
+			if (toSend.getNodeId() > toNodeID) {
+				concatKey = toNodeID.toString() + ","
+						+ toSend.getNodeId().toString();
 			} else {
-				concatKey = Shared.myInfo.getId().toString() + ","
-						+ request.getNodeId().toString();
+				concatKey = toSend.getNodeId().toString() + ","
+						+ toNodeID.toString();
 			}
 			logger.debug("Giving up key: " + concatKey);
 			if (Shared.haveKeys.contains(concatKey)) {
 				Shared.haveKeys.remove(concatKey);
 				Shared.haveNotKeys.add(concatKey);
 			}
-			// TODO: Key has not been sent to Other Nodes(TCP)
-			Integer receiverID = request.getNodeId();
-			Node receiver = Shared.nodeInfos.get(receiverID);
+			//TCP Connection
+			//Integer receiverID = toNode
+			Node receiver = Shared.nodeInfos.get(toNodeID);
 			String hostName = receiver.getHost();
 			Integer port = Integer.parseInt(receiver.getPort()); 	
 			try
@@ -187,6 +212,7 @@ public class RequestHandler extends Thread {
 				logger.debug("sending request to host: " + hostName);
 				Socket clientSocket = new Socket(hostName,port);
 				PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
+				logger.debug(message);
 				writer.println(message);
 				writer.close();
 				clientSocket.close();

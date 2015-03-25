@@ -31,7 +31,7 @@ public class Application extends Thread {
 		
 		for(int reqCount = 1; reqCount <= numberOfRequests; reqCount++){
 			try {
-				Thread.sleep(50000);
+				Thread.sleep(60000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
