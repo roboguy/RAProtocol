@@ -102,8 +102,9 @@ public class RequestHandler extends Thread {
 									+ request.getTimeStamp() + " from node: "
 									+ request.getNodeId());
 							Shared.bufferingQueue.add(request);
+							
 							// Release lock for cs enter to proceed.
-							Shared.objForLock.notify();
+							//Shared.objForLock.notify();
 
 							/*
 							 * Else we do not have a higher priority to execute

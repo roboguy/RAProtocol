@@ -22,7 +22,7 @@ public class Shared {
 	// Implement Logical CLock Timestamp
 	public static volatile int logicalClockTimeStamp = 0;
 	// Request timestamp - kaunsa time par request hui thi.
-	public static volatile int requestTimeStamp = 1;
+	public static volatile int requestTimeStamp = 0;
 	public static volatile Object objForLock = new Object();
 	// synchronized(objForLock)
 
