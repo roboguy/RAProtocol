@@ -78,6 +78,7 @@ public class App {
 		try {
 			initKeys(nodeID, conf);
 		} catch (FileNotFoundException e1) {
+			logger.error(e1.getMessage());
 			e1.printStackTrace();
 		}
 		server.start();
@@ -86,6 +87,7 @@ public class App {
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		

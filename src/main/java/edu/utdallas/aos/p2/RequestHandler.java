@@ -262,6 +262,7 @@ public class RequestHandler extends Thread {
 				writer.close();
 				clientSocket.close();
 			} catch (IOException ex) {
+				logger.error(ex.getMessage());
 				ex.printStackTrace();
 			}
 
@@ -313,6 +314,7 @@ public class RequestHandler extends Thread {
 			writer.close();
 			clientSocket.close();
 		} catch (IOException ex) {
+			logger.error(ex.getMessage());
 			ex.printStackTrace();
 		}
 

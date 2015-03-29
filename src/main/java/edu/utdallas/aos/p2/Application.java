@@ -32,6 +32,7 @@ public class Application extends Thread {
 		try {
 			Thread.sleep(10);
 		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		for(int reqCount = 1; reqCount <= numberOfRequests; reqCount++){
@@ -48,6 +49,7 @@ public class Application extends Thread {
 			try {
 				Thread.sleep(requestDelay.longValue());
 			} catch (InterruptedException e) {
+				logger.error(e.getMessage());
 				e.printStackTrace();
 			}
 		}

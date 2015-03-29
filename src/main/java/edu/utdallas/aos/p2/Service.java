@@ -105,6 +105,7 @@ public class Service {
 					logger.debug("Done waiting for keys... executing CS");
 					criticalSection();
 				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
 					e.printStackTrace();
 				}
 			}// While for spurious wait
@@ -133,12 +134,14 @@ public class Service {
 			br.close();
 			logger.debug("Successfully wrote value: " + value);
 		} catch (IOException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		Double csDuration = Shared.durationOfCS.sample();
 		try {
 			Thread.sleep(csDuration.longValue());
 		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 
@@ -211,6 +214,7 @@ public class Service {
 			writer.close();
 			clientSocket.close();
 		} catch (IOException ex) {
+			logger.error(ex.getMessage());
 			ex.printStackTrace();
 		}
 
