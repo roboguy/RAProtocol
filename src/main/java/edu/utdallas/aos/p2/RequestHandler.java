@@ -46,13 +46,13 @@ public class RequestHandler extends Thread {
 		 */
 
 		Message request = gson.fromJson(message, Message.class);
-		logger.debug("Received a request from " + request.getNodeId());
+		//logger.debug("Received a request from " + request.getNodeId());
 
 		logger.debug("53-Updated Timestamp to: " + Shared.logicalClockTimeStamp);
 
 		synchronized (Shared.objForLock) {
 			if (request.getType().equals("REQUEST")) {
-
+				logger.debug("Received a request from " + request.getNodeId());
 				// Latch to BLOCK CS ENTER
 				// synchronized (Shared.objForLock) {
 				/*
@@ -104,8 +104,10 @@ public class RequestHandler extends Thread {
 							Shared.bufferingQueue.add(request);
 							
 							// Release lock for cs enter to proceed.
-							//Shared.objForLock.notify();
-
+							if(Shared.haveNotKeys.isEmpty()){
+								Shared.objForLock.notify();
+							}
+							
 							/*
 							 * Else we do not have a higher priority to execute
 							 * CS means we have to give up the key, but we have
@@ -192,6 +194,7 @@ public class RequestHandler extends Thread {
 			// Check Have not set is empty
 			// If it is empty then release Latch
 			else if (request.getType().equals("RESPONSE")) {
+				logger.debug("Response from " + request.getNodeId());
 				Shared.logicalClockTimeStamp = Math.max(request.getTimeStamp(),
 						Shared.logicalClockTimeStamp) + 1;
 				addKey(request);
@@ -213,11 +216,22 @@ public class RequestHandler extends Thread {
 				Shared.haveNotKeys.remove(concatKey);
 				Shared.haveKeys.add(concatKey);
 			}
-
+			
+			for(String haveKey:Shared.haveKeys){
+				logger.debug("Key Have: " + haveKey);
+			}
+			
+			for(String notHaveKey:Shared.haveNotKeys){
+				logger.debug("Key Not With me: " + notHaveKey);
+			}
+			logger.debug("Before Notify. Timestamp is: " + Shared.logicalClockTimeStamp);
 			// If all keys are with us then notify waiting threads
 			if (Shared.haveNotKeys.isEmpty()) {
 				Shared.objForLock.notify();
 			}
+			
+
+			
 		}// Synchronized block ends
 	}
 

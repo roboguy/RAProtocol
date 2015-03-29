@@ -1,26 +1,22 @@
 {
-  "N": 4,
+  "N": 3,
   "nodes": [
     {
         "id": 0,
-        "host": "192.168.0.22",
-        "port": "50001"
+        "host": "dc24.utdallas.edu",
+        "port": "50002"
     },
     {
         "id": 1,
-        "host": "192.168.0.33",
-        "port": "50001"
+        "host": "dc25.utdallas.edu",
+        "port": "50002"
     },
     {
         "id": 2,
-        "host": "192.168.0.6",
-        "port": "50001"
-    },
-    {
-        "id": 3,
-        "host": "192.168.0.15",
-        "port": "50001"
+        "host": "dc26.utdallas.edu",
+        "port": "50002"
     }
+
   ],
   "params": {
     "key_distribution": "arbitiary/fixed",
@@ -28,7 +24,7 @@
     "necessary_arg2": "",
     "optional_arg1": ""
   },
-  "total_Number_Of_Requests": 10000,
+  "total_Number_Of_Requests": 100,
   "mean_Consecutive_Request_Delay": 50,
   "mean_Duration_Of_CS": 10
 }
