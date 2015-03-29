@@ -6,6 +6,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.math3.distribution.ExponentialDistribution;
+
 import edu.utdallas.aos.p2.config.Node;
 
 public class Shared {
@@ -24,7 +26,9 @@ public class Shared {
 	// Request timestamp - kaunsa time par request hui thi.
 	public static volatile int requestTimeStamp = 0;
 	public static volatile Object objForLock = new Object();
-	// synchronized(objForLock)
-
+	
+	public static volatile ExponentialDistribution requestDelay;
+	public static volatile ExponentialDistribution durationOfCS;
+	
 }
 

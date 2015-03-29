@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
+import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,7 +46,16 @@ public class App {
 		if(conf !=null){
 			logger.debug("Configuration Read Successfully");
 		}
-
+		
+		/*
+		 * Setting duration params.
+		 */
+		Double meanConseqReqDelay = conf.getMeanConsecutiveRequestDelay().doubleValue();
+		Double meanDurationOfCS	= conf.getMeanDurationOfCS().doubleValue();
+		
+		Shared.requestDelay = new ExponentialDistribution(meanConseqReqDelay);
+		Shared.durationOfCS = new ExponentialDistribution(meanDurationOfCS);
+		
 		Shared.myInfo = conf.getNodes().get(nodeID);
 		//String myHost = Shared.myInfo.getHost();
 		String port = Shared.myInfo.getPort();
@@ -140,9 +150,7 @@ public class App {
 					}
 				}
 			}//For each key loop ends
-		}
-		
-		
-	}
+		}//Else ENDS
+	} //init Keys method ENDS
 
 }

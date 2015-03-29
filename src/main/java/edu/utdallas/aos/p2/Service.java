@@ -135,9 +135,9 @@ public class Service {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		Double csDuration = Shared.durationOfCS.sample();
 		try {
-			Thread.sleep(50);
+			Thread.sleep(csDuration.longValue());
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

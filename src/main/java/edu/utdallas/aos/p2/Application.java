@@ -28,13 +28,14 @@ public class Application extends Thread {
 	public void run() {
 		Logger logger = LogManager.getLogger(Application.class);
 		Service service = new Service();
-		
+		//Waiting for a few milliseconds to ensure all other nodes started.
+		try {
+			Thread.sleep(10);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		for(int reqCount = 1; reqCount <= numberOfRequests; reqCount++){
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			
 			Long startTime = System.currentTimeMillis();
 			logger.debug("Making CS Enter Request. Request Count: " + reqCount);
 			service.csEnter();
@@ -43,6 +44,12 @@ public class Application extends Thread {
 			
 			Long stopTime = System.currentTimeMillis();
 			logger.debug("IN CS FOR: " + (stopTime - startTime) + "ms");
+			Double requestDelay = Shared.requestDelay.sample();
+			try {
+				Thread.sleep(requestDelay.longValue());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
