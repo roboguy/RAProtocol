@@ -51,6 +51,7 @@ public class RequestHandler extends Thread {
 		logger.debug("53-Updated Timestamp to: " + Shared.logicalClockTimeStamp);
 
 		synchronized (Shared.objForLock) {
+			
 			if (request.getType().equals("REQUEST")) {
 				logger.debug("Received a request from " + request.getNodeId());
 				// Latch to BLOCK CS ENTER
@@ -92,7 +93,7 @@ public class RequestHandler extends Thread {
 								+ request.getTimeStamp() + " Logical TS: "
 								+ Shared.logicalClockTimeStamp);
 						// Chaged to Shared.requestedTimeStamp
-						if (request.getTimeStamp() >= Shared.requestTimeStamp) {
+						if (request.getTimeStamp() > Shared.requestTimeStamp) {
 
 							// Do max of timestamps + 1
 							Shared.logicalClockTimeStamp = Math.max(
@@ -104,11 +105,11 @@ public class RequestHandler extends Thread {
 							Shared.bufferingQueue.add(request);
 							
 							// Release lock for cs enter to proceed.
-							if(Shared.haveNotKeys.isEmpty()){
-								Shared.wasSignalled = true;
-								logger.debug("Notifying any waiting threads that all keys received.");
-								Shared.objForLock.notify();
-							}
+//							if(Shared.haveNotKeys.isEmpty()){
+//								Shared.wasSignalled = true;
+//								logger.debug("Notifying any waiting threads that all keys received.");
+//								Shared.objForLock.notify();
+//							}
 							
 							/*
 							 * Else we do not have a higher priority to execute
@@ -121,7 +122,7 @@ public class RequestHandler extends Thread {
 							// RUCHIR - Again send the request with old
 							// timestamp to enter
 
-						} else {
+						} else if(request.getTimeStamp() < Shared.requestTimeStamp){
 							logger.debug("Requst timestamp is less than my timestamp.");
 							// Some bug here.
 							Message response = new Message();
@@ -162,6 +163,65 @@ public class RequestHandler extends Thread {
 							sendKeyRequest(requestString, sendNode);
 
 						}
+						//Start 
+						else if(request.getTimeStamp() == Shared.requestTimeStamp){
+							if(request.getNodeId() > Shared.myInfo.getId()){
+								// Do max of timestamps + 1
+								Shared.logicalClockTimeStamp = Math.max(
+										request.getTimeStamp(),
+										Shared.logicalClockTimeStamp) + 1;
+								logger.debug("Buffering Request with timestamp: "
+										+ request.getTimeStamp() + " from node: "
+										+ request.getNodeId());
+								Shared.bufferingQueue.add(request);
+								
+								// Release lock for cs enter to proceed.
+//								if(Shared.haveNotKeys.isEmpty()){
+//									Shared.wasSignalled = true;
+//									logger.debug("Notifying any waiting threads that all keys received.");
+//									Shared.objForLock.notify();
+//								}
+							}
+							else{
+								Message response = new Message();
+								response.setType("RESPONSE");
+								response.setKey(request.getKey());
+								logger.debug("Before update: "
+										+ Shared.logicalClockTimeStamp);
+
+								// Timestamp++ not max because our timestamp is
+								// already bigger
+								Shared.logicalClockTimeStamp++;
+								logger.debug("105 - Updated Timestamp to: "
+										+ Shared.logicalClockTimeStamp
+										+ " reflect send event.");
+
+								// change to requestedCS Timestamp [DONE]
+								response.setTimeStamp(Shared.logicalClockTimeStamp);
+								response.setNodeId(Shared.myInfo.getId());
+								Gson gson1 = new Gson();
+								this.message = gson1.toJson(response);
+
+								/*
+								 * we are sending a response with our node id and
+								 * key to the node we received a request for key
+								 * from.
+								 */
+								giveUpKey(response, request.getNodeId());
+
+								Message requestCSAgain = new Message();
+								requestCSAgain.setKey(request.getKey());
+								requestCSAgain.setNodeId(Shared.myInfo.getId());
+								requestCSAgain
+										.setTimeStamp(Shared.requestTimeStamp);
+								requestCSAgain.setType("REQUEST");
+								String requestString = gson1.toJson(requestCSAgain);
+								Node sendNode = getNodeInfo(request.getNodeId()
+										.toString());
+								sendKeyRequest(requestString, sendNode);
+							}
+						}
+						//END 
 
 					} // IF REQUESTED FOR CS ENDS
 
@@ -228,11 +288,11 @@ public class RequestHandler extends Thread {
 			}
 			logger.debug("Before Notify. Timestamp is: " + Shared.logicalClockTimeStamp);
 			// If all keys are with us then notify waiting threads
-			if (Shared.haveNotKeys.isEmpty()) {
-				Shared.wasSignalled = true;
-				logger.debug("Added Key, now notifying waiting theads that all keys received.");
-				Shared.objForLock.notify();
-			}
+//			if (Shared.haveNotKeys.isEmpty()) {
+//				Shared.wasSignalled = true;
+//				logger.debug("Added Key, now notifying waiting theads that all keys received.");
+//				Shared.objForLock.notify();
+//			}
 			
 
 			

@@ -17,16 +17,16 @@ import com.google.gson.Gson;
 import edu.utdallas.aos.p2.config.Node;
 
 public class Service {
-	
+
 	private Logger logger = LogManager.getLogger(Service.class);
 
 	public void csEnter() {
 
 		synchronized (Shared.objForLock) {
-			
+
 			// UPDATE MY REQUEST.TIMESTAMP
 			Shared.logicalClockTimeStamp++;
-			
+
 			logger.debug("Updating Timestamp to:"
 					+ Shared.logicalClockTimeStamp + " & isRequestedCS = true.");
 			Shared.isRequestedCS = true;
@@ -48,17 +48,17 @@ public class Service {
 			}
 			// Else (Has not is not empty)
 			else {
-				
+
 				// get corresponding keys from various Servers
 				// wait till response (while its not null)
 				logger.debug("Keys not found, updating requestedTimestamp to "
 						+ Shared.logicalClockTimeStamp);
 				Shared.requestTimeStamp = Shared.logicalClockTimeStamp;
-				
+
 				Iterator<String> iSet = Shared.haveNotKeys.iterator();
-				
+
 				logger.debug("Sending request for missing keys");
-				
+
 				while (iSet.hasNext()) {
 					String key = iSet.next();
 					String split[] = key.split(",");
@@ -98,26 +98,22 @@ public class Service {
 
 			logger.debug("Blocked on pending key requests ....");
 
-			while (!Shared.wasSignalled) {
-				try {
-					// Blocking call
-					Shared.objForLock.wait();
-					
-					logger.debug("Done waiting for keys... executing CS");
-				} catch (InterruptedException e) {
-					logger.error(e.getMessage());
-					e.printStackTrace();
-				}
-			}// While for spurious wait
-			
-			//Clear the singnal Flag
-			Shared.wasSignalled = false;
-			
-			//Enter critical section
-			criticalSection();
-			return;
-			
 		}// Synchronized block ENDS
+		
+		while (true) {
+			// Shared.objForLock.wait();
+			synchronized (Shared.objForLock) {
+				if(Shared.haveNotKeys.isEmpty()){
+					logger.debug("Done waiting for keys... executing CS");
+					criticalSection();
+					return;
+				}
+			}
+			
+			
+			// }// While for spurious wait
+		}
+
 	}
 
 	public void criticalSection() {
@@ -153,22 +149,23 @@ public class Service {
 		}
 
 	}
-	
+
 	public void csLeave() {
-		
+
 		int requestCounter = 0;
 		logger.debug("In CS Leave. Setting isInCS = false. isRequestedCS= false");
-		
+
 		// Lock the Queue so that no entry is added further.
 		synchronized (Shared.objForLock) {
-			
+
 			Shared.isInCS = false;
 			Shared.isRequestedCS = false;
-			logger.debug("Processing Queue of size " + Shared.bufferingQueue.size() + " in CS Leave");
+			logger.debug("Processing Queue of size "
+					+ Shared.bufferingQueue.size() + " in CS Leave");
 			logger.debug("Current TS is: " + Shared.logicalClockTimeStamp);
 			/*
-			 *  Process the entire buffered Queue and fulfill the requests by sending
-			 *  keys
+			 * Process the entire buffered Queue and fulfill the requests by
+			 * sending keys
 			 */
 			while (!Shared.bufferingQueue.isEmpty()) {
 				requestCounter++;
@@ -176,12 +173,12 @@ public class Service {
 				fulfillReq(request);
 			}
 			logger.debug("Sent " + requestCounter + " requests.");
-			
-		}//Synchronized block ENDS
+
+		}// Synchronized block ENDS
 
 	}
-	
-	//TODO: Refactor these methods into another class as they are duplicated
+
+	// TODO: Refactor these methods into another class as they are duplicated
 	private Node getNodeInfo(String sendNodeId) {
 		Integer id = Integer.parseInt(sendNodeId);
 		Node n = Shared.nodeInfos.get(id);
@@ -226,5 +223,5 @@ public class Service {
 		}
 
 	}
-	
+
 }
