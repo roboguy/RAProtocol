@@ -98,18 +98,25 @@ public class Service {
 
 			logger.debug("Blocked on pending key requests ....");
 
-			while (!Shared.haveNotKeys.isEmpty()) {
+			while (!Shared.wasSignalled) {
 				try {
 					// Blocking call
 					Shared.objForLock.wait();
+					
 					logger.debug("Done waiting for keys... executing CS");
-					criticalSection();
 				} catch (InterruptedException e) {
 					logger.error(e.getMessage());
 					e.printStackTrace();
 				}
 			}// While for spurious wait
-
+			
+			//Clear the singnal Flag
+			Shared.wasSignalled = false;
+			
+			//Enter critical section
+			criticalSection();
+			return;
+			
 		}// Synchronized block ENDS
 	}
 

@@ -13,7 +13,7 @@ import edu.utdallas.aos.p2.config.Node;
 public class Shared {
 	public static volatile Node myInfo = new Node();
 	public static volatile ConcurrentHashMap<Integer, Node> nodeInfos = new ConcurrentHashMap<>();
-	
+	public static volatile boolean wasSignalled = false;
 	public static volatile boolean isInCS = false;
 	//TODO: change isRequestedCS to false
 	public static volatile boolean isRequestedCS = false; // if I have requested

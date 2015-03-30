@@ -105,6 +105,8 @@ public class RequestHandler extends Thread {
 							
 							// Release lock for cs enter to proceed.
 							if(Shared.haveNotKeys.isEmpty()){
+								Shared.wasSignalled = true;
+								logger.debug("Notifying any waiting threads that all keys received.");
 								Shared.objForLock.notify();
 							}
 							
@@ -227,6 +229,8 @@ public class RequestHandler extends Thread {
 			logger.debug("Before Notify. Timestamp is: " + Shared.logicalClockTimeStamp);
 			// If all keys are with us then notify waiting threads
 			if (Shared.haveNotKeys.isEmpty()) {
+				Shared.wasSignalled = true;
+				logger.debug("Added Key, now notifying waiting theads that all keys received.");
 				Shared.objForLock.notify();
 			}
 			
