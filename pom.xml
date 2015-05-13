@@ -4,7 +4,7 @@
 
 	<groupId>edu.utdallas.aos.p2</groupId>
 	<artifactId>RAProtocol</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<packaging>jar</packaging>
 
 	<name>AOS_Project1</name>

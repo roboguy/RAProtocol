@@ -65,6 +65,7 @@ public class Server extends Thread {
 			//Server goes into a permanent loop accepting connections from clients			
 			while(isRunning)
 			{
+				logger.debug("Accpeting Requests now..");
 				//Listens for a connection to be made to this socket and accepts it
 				//The method blocks until a connection is made
 				Socket sock = serverSock.accept();
@@ -77,8 +78,7 @@ public class Server extends Thread {
 					line = inFromClient.readLine();
 				}
 				logger.debug("Started Request Handler to handle request.");
-//				RequestHandler handler = new RequestHandler(sb.toString());
-//				handler.start();
+
 				Message(sb.toString());
 			}
 
@@ -150,9 +150,9 @@ public class Server extends Thread {
 							Shared.logicalClockTimeStamp) + 1;
 					Shared.bufferingQueue.add(request);
 				}
-
 				// 2. Else -> Check the Timestamp -> request.getTimeStamp()
 				/*
+				
 				 * Else we are not inCS
 				 */
 				else {
@@ -328,7 +328,7 @@ public class Server extends Thread {
 					}
 				}
 			}
-
+			
 			// Update have & have not set
 			// Check Have not set is empty
 			// If it is empty then release Latch
@@ -338,7 +338,11 @@ public class Server extends Thread {
 						Shared.logicalClockTimeStamp) + 1;
 				addKey(request);
 			}
-
+			
+			
+			logger.debug("Finished Handeling Request, returning");
+			
+			return;
 		}//Synchronized block ENDS
 
 	} // Message method ends
@@ -368,8 +372,6 @@ public class Server extends Thread {
 //				Shared.objForLock.notify();
 //			}
 			
-
-			
 		}// Synchronized block ends
 	}
 
@@ -397,26 +399,30 @@ public class Server extends Thread {
 			if (Shared.haveKeys.contains(concatKey)) {
 				Shared.haveKeys.remove(concatKey);
 				Shared.haveNotKeys.add(concatKey);
+				
+				// TCP Connection
+				// Integer receiverID = toNode
+				Node receiver = Shared.nodeInfos.get(toNodeID);
+				String hostName = receiver.getHost();
+				Integer port = Integer.parseInt(receiver.getPort());
+				try {
+					logger.debug("sending request to host: " + hostName);
+					Socket clientSocket = new Socket(hostName, port);
+					PrintWriter writer = new PrintWriter(
+							clientSocket.getOutputStream());
+					logger.debug(message);
+					writer.println(message);
+					writer.close();
+					clientSocket.close();
+				} catch (IOException ex) {
+					logger.error(ex.getMessage());
+					ex.printStackTrace();
+				}
+			} else {
+				logger.debug("REQUESTED FOR INVALID KEY.");
 			}
 
-			// TCP Connection
-			// Integer receiverID = toNode
-			Node receiver = Shared.nodeInfos.get(toNodeID);
-			String hostName = receiver.getHost();
-			Integer port = Integer.parseInt(receiver.getPort());
-			try {
-				logger.debug("sending request to host: " + hostName);
-				Socket clientSocket = new Socket(hostName, port);
-				PrintWriter writer = new PrintWriter(
-						clientSocket.getOutputStream());
-				logger.debug(message);
-				writer.println(message);
-				writer.close();
-				clientSocket.close();
-			} catch (IOException ex) {
-				logger.error(ex.getMessage());
-				ex.printStackTrace();
-			}
+			
 
 		}// Syncronized block ends
 

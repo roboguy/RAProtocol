@@ -37,7 +37,7 @@ public class Service {
 			// execute CriticalSection
 			// call csLeave();
 
-			if (Shared.haveNotKeys.isEmpty()) {
+			if (Shared.haveNotKeys.size() <= 1 ) {
 				logger.debug("All keys found. isInCS = true");
 				Shared.isInCS = true;
 				logger.debug("Entering Critical Section");
@@ -103,16 +103,19 @@ public class Service {
 		while (true) {
 			// Shared.objForLock.wait();
 			synchronized (Shared.objForLock) {
-				if(Shared.haveNotKeys.isEmpty()){
+				if(Shared.haveNotKeys.size() <= 1){
 					logger.debug("Done waiting for keys... executing CS");
 					criticalSection();
 					return;
 				}
 			}
+			try {
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			
-			
-			// }// While for spurious wait
-		}
+		}// While for spurious wait
 
 	}
 
@@ -140,7 +143,11 @@ public class Service {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
+		
 		Double csDuration = Shared.durationOfCS.sample();
+		
+		logger.info("Simulating a delay of " + csDuration + " for CS Duration");
+		
 		try {
 			Thread.sleep(csDuration.longValue());
 		} catch (InterruptedException e) {
@@ -191,8 +198,8 @@ public class Service {
 	 * This will fulfill the buffered request
 	 */
 	private void fulfillReq(Message request) {
+		
 		Integer toNode = request.getNodeId();
-		RequestHandler reqhandler = new RequestHandler();
 		logger.debug("Fulfilling Requests");
 		Shared.logicalClockTimeStamp++;
 		logger.debug("Service 176 - Updating Timestamp to:"
@@ -203,8 +210,8 @@ public class Service {
 		response.setNodeId(Shared.myInfo.getId());
 		response.setKey(request.getKey());
 		Gson gson = new Gson();
-		reqhandler.message = gson.toJson(response);
-		reqhandler.giveUpKey(response, toNode);
+		String message1 = gson.toJson(response);
+		giveUpKey(response, toNode, message1);
 	}
 
 	public void sendKeyRequest(String message, Node sendNode) {
@@ -222,6 +229,61 @@ public class Service {
 			ex.printStackTrace();
 		}
 
+	}
+	
+	public void giveUpKey(Message toSend, Integer toNodeID, String message) {
+
+		synchronized (Shared.objForLock) {
+			// comparing and adding smaller with bigger
+			// String concatKey = "";
+
+			/*
+			 * TODO: Dont send the message toSend here. Instead only send
+			 * toSend.getNodeID() as Integer. It does not matter what order it
+			 * is in since it will always return the same "smaller,bigger" key.
+			 */
+			String concatKey = concatRequestKey(toSend, toNodeID);
+
+			logger.debug("Giving up key: " + concatKey);
+
+			if (Shared.haveKeys.contains(concatKey)) {
+				Shared.haveKeys.remove(concatKey);
+				Shared.haveNotKeys.add(concatKey);
+			}
+
+			// TCP Connection
+			// Integer receiverID = toNode
+			Node receiver = Shared.nodeInfos.get(toNodeID);
+			String hostName = receiver.getHost();
+			Integer port = Integer.parseInt(receiver.getPort());
+			try {
+				logger.debug("sending request to host: " + hostName);
+				Socket clientSocket = new Socket(hostName, port);
+				PrintWriter writer = new PrintWriter(
+						clientSocket.getOutputStream());
+				logger.debug(message);
+				writer.println(message);
+				writer.close();
+				clientSocket.close();
+			} catch (IOException ex) {
+				logger.error(ex.getMessage());
+				ex.printStackTrace();
+			}
+
+		}// Syncronized block ends
+
+	}
+	
+	private String concatRequestKey(Message toSend, Integer toNodeID) {
+		String concatKey;
+		if (toSend.getNodeId() > toNodeID) {
+			concatKey = toNodeID.toString() + ","
+					+ toSend.getNodeId().toString();
+		} else {
+			concatKey = toSend.getNodeId().toString() + ","
+					+ toNodeID.toString();
+		}
+		return concatKey;
 	}
 
 }

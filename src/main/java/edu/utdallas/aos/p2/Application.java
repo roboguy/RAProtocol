@@ -46,13 +46,16 @@ public class Application extends Thread {
 			Long stopTime = System.currentTimeMillis();
 			logger.debug("IN CS FOR: " + (stopTime - startTime) + "ms");
 			Double requestDelay = Shared.requestDelay.sample();
+			logger.info("Waiting for " + requestDelay + " To make another CS Request.");
 			try {
 				Thread.sleep(requestDelay.longValue());
 			} catch (InterruptedException e) {
 				logger.error(e.getMessage());
 				e.printStackTrace();
 			}
-		}
-	}
+		} // For number of requests
+		
+		
+	}// Run method ENDS
 
 }
